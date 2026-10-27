@@ -115,8 +115,10 @@ Fork commits, pushes, tracking updates, and source implementation follow the act
 
 ## Code Conventions
 
-- Swift and Objective-C; follow the surrounding file's style and `classStyleTemplate.txt` for new class layout.
-- User-facing strings live in `*.lproj` localizations; translations are managed through upstream's translation workflow, not by hand in PRs.
+- Swift and Objective-C; follow the surrounding file's style.
+- `classStyleTemplate.txt` is an Objective-C header template (GPL-3 license header, `#pragma mark` sections); use it for new Objective-C classes only.
+- User-facing strings live in `*.lproj` localizations.
+- Translations are handled by AdGuard's translation process (https://kb.adguard.com/en/general/adguard-translations); the README does not state whether translation PRs are accepted.
 
 ## Important Files
 
