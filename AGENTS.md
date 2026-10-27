@@ -87,15 +87,40 @@ Fork commits, pushes, tracking updates, and source implementation follow the act
   - `SharedComponents/` is code shared across app and extensions; `AdguardTests/` and `TestHostApp/` hold app tests.
 - `AdGuardSDK/` is the filtering core, split into `SafariAdGuardSDK` (content blockers, filter service, filter conversion, metadata, SQL scripts) and `DnsAdGuardSDK` (DNS providers, protection, filtering rules, statistics, packet tunnel); `SharedAdGuardSDK` holds common code.
 - `Libs/` holds in-repo helper libraries (ACommons, ADomain, DomainParser, Networking, Utils, ABackEndClients, vendors).
-- Safari ad blocking uses filter lists, user rules, and allowlists managed by `AdGuardSDK/AdGuardSDK/Safari/FilterService/FiltersService.swift`.
-- `AdGuardSDK/AdGuardSDK/Safari/FiltersConvertation/FiltersConverter.swift` assigns rules to content blockers and uses `ContentBlockerConverter` to produce Safari JSON and, when enabled and entitled, advanced rules.
-- `AdGuardSDK/AdGuardSDK/Safari/ContentBlockers/ContentBlockerService.swift` manages content-blocker updates; `ContentBlockersManager.swift` calls Apple's `SFContentBlockerManager` to reload blockers and query their state.
-- `AdguardExtension/Extension/ContentBlockerRequestHandler.swift` supplies the appropriate JSON to Safari, which applies the content-blocking rules.
-- Six content-blocker extension configurations cover general, privacy, social and annoyances, security, other, and custom filters.
-- `AdguardExtension/SafariWebExtension/` provides additional Safari web-extension functionality, including advanced protection; it is distinct from the declarative content blockers.
+- Safari ad blocking has two paths: Safari applies six declarative content-blocker JSONs; the Safari WebExtension applies advanced rules.
+- `Safari/FilterService/FiltersService.swift` manages filter metadata and activation; `SharedAdGuardSDK/FilterFilesStorage.swift` stores downloaded and bundled filter texts.
+- `Safari/FiltersConvertation/FiltersConverterService.swift` selects enabled filters, user rules, and one allowlist mode, subject to protection and entitlement settings.
+- `Safari/FiltersConvertation/FiltersConverter.swift` routes rules by group or affinity to general, privacy, social/annoyances, security, other, and custom blockers; user rules and exceptions are added to all six.
+- Paths beginning `Safari/` or `SharedAdGuardSDK/` in this section are relative to `AdGuardSDK/AdGuardSDK/`.
+- `ContentBlockerConverter` from SafariConverterLib converts rules into Safari JSON and, when advanced blocking and Pro are enabled, advanced rules; the investigated version was 4.3.0, with the current pin in `AdguardSafariExtension-iOS.xcworkspace/xcshareddata/swiftpm/Package.resolved`.
+- The converter enforces Safari rule limits and app-supplied iOS 17 JSON size limits; conversion results expose errors and discarded-rule counts.
+- `Safari/ContentBlockers/ContentBlockersInfoStorage.swift` writes six JSONs and builds the shared advanced-rule engine; individual atomic file writes do not form a multi-file transaction.
+- `Safari/SafariProtection/SafariProtection.swift` orchestrates conversion, storage, and reload; `Safari/ContentBlockers/ContentBlockerService.swift` calls `ContentBlockersManager.swift` and retries failed Safari reloads once.
+- `AdguardExtension/Extension/ContentBlockerRequestHandler.swift` supplies the relevant JSON to Safari, which applies it; enabled state and saved metadata do not prove which rules Safari installed.
+- The separate `AdguardExtension/SafariWebExtension/` requests URL-specific engine results through native messaging and applies CSS, extended CSS, JavaScript, and scriptlets; it requires the extension and relevant site access.
+- `Safari/FiltersConvertation/FiltersConverter.swift`, `AdguardExtension/SafariWebExtension/extension/src/pages/background/engine.ts`, and `AdguardExtension/SafariWebExtension/SafariWebExtensionMessageProcessor.swift` own the advanced-rule pipeline and lookup.
 - DNS filtering in `AdGuardSDK/AdGuardSDK/DNS/` and `AdguardExtension/Tunnel/` is a separate mechanism that can also block domains.
 - `fastlane/` and `Builder/` contain build, signing, and release automation; `SupportingScripts/` contains helper scripts.
 - The workspace is `AdguardSafariExtension-iOS.xcworkspace` at the repository root.
+
+### Safari Ad-Blocking Investigation Leads
+
+The following are static investigation leads, not reproduced iOS bugs or authoritative finding records.
+Recheck current upstream, prior art, reachability, impact, and actual Safari behavior before treating any lead as a finding; `ISSUES.md` and `issues/` remain the finding ledger.
+Prioritize the empty inverted allowlist, missing filter files, and background-update errors for reproduction.
+
+- Empty inverted allowlist: the enabled empty list produces no inverted exception, despite the UI describing filtering only on listed sites; verify generated JSON and Safari behavior.
+- Missing enabled filter: unreadable filter text without a bundled fallback is logged and omitted while conversion continues; verify whether a successful reload silently removes that filter's protection.
+- Background recovery: `SafariProtection+BackgroundFetch.swift` ignores the filter-update result before conversion and reload, and existing tests expect a nil completion error in failure scenarios; verify stale filters and reported status.
+- Reload and persistence: inspect partial six-file writes, background reload overlapping later writes, skipped reloads after failure, and independent app/extension queues sharing storage; verify actual installed generations and callback results.
+- Advanced cache: `engine.ts` returns cached configuration before refreshing it; verify whether a policy change affects the next navigation while the background process remains alive.
+- Rule limits: verify whether discarded entries can include allowlist exceptions while earlier blocking rules remain.
+- Action extension: `AdguardExtension/ActionExtension/ActionExtensionUserRulesHelper.swift` discards reload callback errors and can report success; verify persisted and installed rules after reload failure.
+- Advanced frames and ordering: verify non-HTTP nested-frame top-URL fallback and nondeterministic cross-blocker advanced-rule aggregation against concrete order-sensitive rules.
+- Custom filters: `FiltersService.swift` stores the requested enabled state but appends an in-memory filter as enabled; normal app callers observed in the investigation add enabled filters, so verify reachability before asserting user impact.
+- Historical context: `FiltersConverterService.swift` and `AffinityRulesParser.swift` remain active despite last file changes in 2021; inspect history and current usage, not age alone.
+- Test evidence: `FiltersConverterTest.swift` uses obsolete APIs and is not in the Xcode test Sources phase; the included `ContentBlockersInfoStorageTest.swift` also references older APIs, but compilation requires Xcode verification.
+- The initial investigation used static inspection on Linux; no iOS/Safari scenario or Xcode build was run.
 
 ## Key Directories
 
