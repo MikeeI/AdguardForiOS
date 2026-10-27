@@ -11,6 +11,8 @@ It combines Safari content blocking, anti-tracking, encrypted DNS (DoH, DoT, DNS
 - Official upstream: [AdguardTeam/AdguardForiOS](https://github.com/AdguardTeam/AdguardForiOS).
 - This checkout is the [MikeeI/AdguardForiOS](https://github.com/MikeeI/AdguardForiOS) fork, not an independently owned product.
 - The goal is to support upstream with evidence-backed issues, comments, and pull requests.
+- Contribution viability (sampled 2026-10-27, last 100 closed pull requests): 1 merged pull request from a fork (#2100, 2023), 7 closed unmerged from forks; the default branch is mostly `feat: synchronize code for v…` commits.
+- Prefer `Research-and-Reporting`; propose `Pull-Request-Implementation` only for a finding the user explicitly selects.
 - The user also wants to find defects and understand why some files are exceptionally old.
 - Prioritize defects and improvements in the app's functional behavior, especially Safari ad blocking, over interface beautification or cosmetic changes.
 - Investigate the Safari ad-blocking architecture and codebase deeply, tracing rules end to end across components, dependencies, state, and failure paths rather than stopping at surface-level symptoms.
@@ -37,9 +39,9 @@ It combines Safari content blocking, anti-tracking, encrypted DNS (DoH, DoT, DNS
 
 ## Branch Roles
 
-- The canonical upstream branch is `version/v4.5` (upstream default); `origin/master` and `version/v4.3` are older lines.
+- The canonical upstream branch is `version/v4.5`: it is the upstream default and the base of the latest merged pull request (#2414, 2025-03); earlier merged pull requests used `master`.
 - The `personal` branch owns fork context and contribution tracking.
-- Upstream-ready source work uses separate `feat/issue-XXX`, `fix/issue-XXX`, or `chore/issue-XXX` branches off `upstream/version/v4.5`.
+- Upstream-ready source work uses separate `feat/issue-NNN`, `fix/issue-NNN`, or `chore/issue-NNN` branches off `upstream/version/v4.5`.
 - Remotes: `origin` is the personal fork, `upstream` is `AdguardTeam/AdguardForiOS`.
 
 ## Finding and Contribution Ledger
