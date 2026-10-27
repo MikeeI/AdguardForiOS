@@ -84,7 +84,13 @@ Fork commits, pushes, tracking updates, and source implementation follow the act
   - `SharedComponents/` is code shared across app and extensions; `AdguardTests/` and `TestHostApp/` hold app tests.
 - `AdGuardSDK/` is the filtering core, split into `SafariAdGuardSDK` (content blockers, filter service, filter conversion, metadata, SQL scripts) and `DnsAdGuardSDK` (DNS providers, protection, filtering rules, statistics, packet tunnel); `SharedAdGuardSDK` holds common code.
 - `Libs/` holds in-repo helper libraries (ACommons, ADomain, DomainParser, Networking, Utils, ABackEndClients, vendors).
-- Data flow: filter lists are fetched and parsed by the SDK, converted to Safari content-blocker JSON, and loaded by the content-blocker extensions; DNS traffic is handled in the tunnel extension via the DNS SDK.
+- Safari ad blocking uses filter lists, user rules, and allowlists managed by `AdGuardSDK/AdGuardSDK/Safari/FilterService/FiltersService.swift`.
+- `AdGuardSDK/AdGuardSDK/Safari/FiltersConvertation/FiltersConverter.swift` assigns rules to content blockers and uses `ContentBlockerConverter` to produce Safari JSON and, when enabled and entitled, advanced rules.
+- `AdGuardSDK/AdGuardSDK/Safari/ContentBlockers/ContentBlockerService.swift` manages content-blocker updates; `ContentBlockersManager.swift` calls Apple's `SFContentBlockerManager` to reload blockers and query their state.
+- `AdguardExtension/Extension/ContentBlockerRequestHandler.swift` supplies the appropriate JSON to Safari, which applies the content-blocking rules.
+- Six content-blocker extension configurations cover general, privacy, social and annoyances, security, other, and custom filters.
+- `AdguardExtension/SafariWebExtension/` provides additional Safari web-extension functionality, including advanced protection; it is distinct from the declarative content blockers.
+- DNS filtering in `AdGuardSDK/AdGuardSDK/DNS/` and `AdguardExtension/Tunnel/` is a separate mechanism that can also block domains.
 - `fastlane/` and `Builder/` contain build, signing, and release automation; `SupportingScripts/` contains helper scripts.
 - The workspace is `AdguardSafariExtension-iOS.xcworkspace` at the repository root.
 
