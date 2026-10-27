@@ -12,6 +12,7 @@ It combines Safari content blocking, anti-tracking, encrypted DNS (DoH, DoT, DNS
 - This checkout is the [MikeeI/AdguardForiOS](https://github.com/MikeeI/AdguardForiOS) fork, not an independently owned product.
 - The goal is to support upstream with evidence-backed issues, comments, and pull requests.
 - The user also wants to find defects and understand why some files are exceptionally old.
+- Prioritize defects and improvements in the app's functional behavior, especially Safari ad blocking, over interface beautification or cosmetic changes.
 - Investigate old files using history, current usage, and upstream context; age alone does not establish a defect or justify removal.
 - `ISSUES.md` provides the compact finding overview and global ID allocator.
 - `issues/ISSUE-NNN.md` owns the complete durable record for one root cause.
